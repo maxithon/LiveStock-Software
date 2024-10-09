@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css} "/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/font-awesome.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/styles.css}"/>
+    <meta charset="ISO-8859-1">
+    <style>
+        .myForm {
+           background: rgba(255, 255, 255, 0.5);/* Semi-transparent background */
+            padding: 20px;
+            border-radius: 10px;
+            border: 10px solid rgba(0, 0, 0, 0.6); /* Semi-transparent border */
+
+                    .btn-block {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+        }
+        }
+    </style>
+</head>
+<body class="background">
+<nav class="main_div">
+    <div class="logo_left">
+        <label class="logo">
+            LiveStock-
+        </label>
+        <label class="logo_com">
+            Software
+        </label>
+    </div>
+    <div class="logo_right">
+        <label class="Candidate_login_btn">
+            <a th:href="@{/login}">
+                Admin Login
+            </a>
+            <a th:href="@{/register}">
+                /Register
+            </a>
+        </label>
+        <label class="Recruiter_login_btn">
+            <a th:href="@{/login}">
+                Regular Users Login
+            </a>
+            <a th:href="@{/register}">
+                /Register
+            </a>
+
+        </label>
+    </div>
+</nav>
+<!-- Login Form -->
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 90vh;">
+        <div class="col-md-4">
+            <div class="myForm">
+                <form th:action="@{/login}" th:object="${user}" method="post">
+                    <h1 class="text-center bold font-weight-bold mb-4">Login</h1>
+                    <div class="form-group">
+                        <input placeholder="Email" name="username" type="email" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <input placeholder="Password" name="password" type="password" class="form-control" required />
+                    </div>
+                    <div class="clearfix mb-4">
+                        <label class="float-left form-check-label">
+                            <input type="checkbox" /> Remember me
+                        </label>
+                        <a href="#" class="color-text float-right">Forgot Password?</a>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Log in</button>
+                    </div>
+                    <p class="text-center">
+                        Are you a new User? <a class="color-text" th:href="@{/register}">Register Now</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- End Login Page -->
+<footer>
+    <label class="copy-right">LiveStock Software</label>
+</footer>
+</body>
+
+<script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+
+</html>

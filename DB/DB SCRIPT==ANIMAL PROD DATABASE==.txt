@@ -1,0 +1,266 @@
+==ANIMAL PROD DATABASE==
+
+create database db_animal_prod_brity;
+__________________________________________________________________________
+-- Install the uuid-ossp extension if not already installed (for generating UUIDs)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Alter the column to use UUID
+ALTER TABLE public.sec_user_type
+  ALTER COLUMN user_type_id SET DATA TYPE UUID USING (uuid_generate_v4());
+
+-- Set default value to auto-generate UUID
+ALTER TABLE public.sec_user_type
+  ALTER COLUMN user_type_id SET DEFAULT uuid_generate_v4();
+___________________________________________________________________________________________
+1.adm_location table:
+
+CREATE TABLE public.adm_location (
+	id uuid NOT NULL,
+	state int4 NOT NULL,
+	"version" int8 NOT NULL,
+	code varchar(30) NOT NULL,
+	regulator_code varchar(10) NULL,
+	"name" varchar(255) NOT NULL,
+	location_type varchar(255) NOT NULL,
+	parent_id uuid NULL,
+	"comments" varchar(255) NULL,
+	CONSTRAINT adm_location_ck_01 CHECK ((state = ANY (ARRAY[0, 1, 2]))),
+	CONSTRAINT adm_location_ck_02 CHECK (((location_type)::text = ANY (ARRAY['COUNTRY'::text, 'PROVINCE'::text, 'DISTRICT'::text, 'SECTOR'::text, 'CELL'::text, 'VILLAGE'::text]))),
+	CONSTRAINT adm_location_pk PRIMARY KEY (id),
+	CONSTRAINT adm_location_uk1 UNIQUE (code),
+	CONSTRAINT adm_location_uk2 UNIQUE (name, parent_id),
+	CONSTRAINT adm_location_fk1 FOREIGN KEY (parent_id) REFERENCES public.adm_location(id)
+);
+
+_________________________________________________________
+2.==sec_user_type==
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE public.sec_user_type (
+    user_type_id UUID DEFAULT uuid_generate_v4()  NOT NULL,
+    user_type_name varchar(255) NOT NULL,
+    CONSTRAINT sec_user_type_ck_01 CHECK (user_type_name::text = ANY (ARRAY['Admin'::text, 'Regular User'::text])),
+    CONSTRAINT sec_user_type_pk PRIMARY KEY (user_type_id)
+);
+
+____________________________________________________________
+
+3. ==sec_user==
+
+CREATE TABLE public.sec_user (
+    user_id UUID DEFAULT uuid_generate_v4()  NOT NULL,
+    first_name varchar NOT NULL,
+    last_name varchar NOT NULL,
+    phone varchar NOT NULL,
+    email varchar NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,  -- Use TRUE instead of 1
+    password varchar(255) NOT NULL,
+    registration_date date NULL,
+    user_type_id uuid NOT NULL,
+    CONSTRAINT sec_user_pk PRIMARY KEY (user_id),
+    CONSTRAINT user_type_fk1 FOREIGN KEY (user_type_id) REFERENCES public.sec_user_type(user_type_id)
+);
+__________________________________________________________________
+4.Amatungo
+CREATE TABLE amatungo (
+  id uuid NOT NULL,
+  name varchar(100) NOT NULL,
+  code varchar(50) NOT null,
+  constraint amatungo_pk primary KEY(id)
+);
+
+_______________________________________________________________________
+
+==5. Uhagarariye Aborora ==
+
+CREATE TABLE uhagarariye_aborora (
+  id uuid NOT NULL,
+  first_name varchar(200) NOT NULL,
+  last_name varchar(200) NOT NULL,
+  gender varchar(10) NOT NULL,
+  maritial_status varchar(20) NOT NULL,
+  nid varchar(16) NOT NULL,
+  phone varchar(15) NOT NULL,
+  email varchar(200) NOT NULL,
+  icyo_akora varchar(200) NOT NULL,
+  amasezerano varchar(255) NOT NULL,
+  photo varchar(255) NOT NULL,
+  location_id uuid NOT null,
+  constraint uhagarariye_aborora_pk primary KEY(id),
+ CONSTRAINT location_fk FOREIGN KEY (location_id) REFERENCES public.a_location(id)
+);
+
+_________________________________________________________________________________________
+
+==6.Abaragizwa Amatungo==
+CREATE TABLE abaragizwa_amatungo (
+  id uuid NOT NULL,
+  first_name varchar(200) NOT NULL,
+  last_name varchar(200) NOT NULL,
+  gender varchar(10) NOT NULL,
+  maritial_status varchar(20) NOT NULL,
+  nid varchar(16) NOT NULL,
+  phone varchar(15) NOT NULL,
+  amasezerano varchar(255) NOT NULL,
+  uhagarariye_aborora_id uuid NOT NULL,
+  location_id uuid NOT null,
+  constraint abaragizwa_amatungo_pk primary KEY(id),
+  constraint uhagarariye_aborora_fk foreign KEY(uhagarariye_aborora_id) references public.uhagarariye_aborora(id),
+   CONSTRAINT location_fk FOREIGN KEY (location_id) REFERENCES public.a_location(id)
+   );
+
+___________________________________________________________________________________________________
+==7.itungo==
+CREATE TABLE itungo (
+  id uuid NOT NULL,
+  nimero varchar(100) NOT NULL,
+  igitsina varchar(30) NOT NULL,
+  ifoto varchar(255) DEFAULT NULL,
+  igihe_turyakiriye varchar(200) NOT NULL,
+  ryabyayeho varchar(40) NOT NULL,
+  imbyaro_rigize varchar(40) DEFAULT NULL,
+  niba_rihaka varchar(40) NOT NULL,
+  amezi_rimaze_rihaka varchar(50) NOT NULL,
+  amafaranga_rihagaze varchar(40) NOT NULL,
+  ukorisa varchar(30) NOT NULL,
+  uburyo_ryabonetsemo varchar(20) NOT NULL,
+  uko_rihagaze varchar(30) NOT NULL,
+  amatungo_id uuid NOT NULL,
+  abaragizwa_amatungo_id uuid NOT NULL,
+  location_id uuid  null,
+  constraint itungo_pk primary key (id),
+  constraint amatungo_fk foreign key(amatungo_id) references public.amatungo(id),
+  constraint amaragizwa_amatungo_fk foreign key(abaragizwa_amatungo_id) references public.abaragizwa_amatungo(id),
+  constraint location_fk foreign key(location_id) references public.a_location(id)
+);
+
+________________________________________________________________________________________________________________
+
+==8.amatungo_yapfuye==
+
+CREATE TABLE amatungo_yapfuye (
+  id uuid not  NULL,
+  itariki_yapfiriyeho varchar(50) NOT NULL,
+  icyo_yazize text,
+  agaciro_itangiweho varchar(50) NOT NULL,
+  itungo_id uuid null,
+  constraint amatungo_yapfuye_pk primary key(id),
+  constraint itungo_fk foreign KEY(itungo_id)references public.itungo(id)
+);
+
+__________________________________________________________________________________________________
+
+==9. itungo_ryarwaye==
+
+CREATE TABLE itungo_ryarwaye (
+  id uuid NOT NULL,
+  itariki_yarwariyeho varchar(50) NOT NULL,
+  icyo_yarwaye varchar(100) NOT NULL,
+  itungo_id uuid NOT null,
+  constraint itungo_ryarwaye_pk primary key(id),
+  constraint itungo_fk foreign key(itungo_id)references public.itungo(id)
+)
+
+________________________________________________________________________________________________
+==10.ayabyaye
+
+CREATE table ayabyaye (
+ id uuid NOT NULL,
+ itariki_ribyariyeho varchar(30) NOT NULL,
+ imbyaro_rigize varchar(40) NULL,
+ igitsina_ibyaye varchar(10) NOT NULL,
+ itariki_rizacurizaraho varchar(30) NOT NULL,
+ itariki_rizongera_kwimiraho varchar(30) NOT NULL,
+ itungo_id uuid NOT null,
+ constraint ayabyaye_pk primary KEY(id),
+ constraint itungo_fk foreign KEY(itungo_id) references public.itungo(id)
+);
+
+__________________________________________________________________________________________________________
+--==11.Amatungo yo kugurisha==
+
+CREATE TABLE amatungo_yo_kugurisha (
+  id uuid NOT NULL,
+  impamvu_rigurishijwe text,
+  amafaranga_rigurishijwe varchar (50) NULL,
+  itariki_ritangiweho varchar(50) NOT NULL,
+  aho_rigurishijwe varchar(30) NOT NULL,
+  itungo_id uuid NOT null,
+  constraint amatungo_yo_kugurisha_pk primary key (id),
+  constraint itungo_fk foreign key(itungo_id) references public.itungo(id)
+);
+
+__________________________________________________________________________________________________________
+--==12. Amatungo yavujwe==--
+
+CREATE TABLE amatungo_yavujwe (
+  id uuid NOT NULL,
+  igihe_ivurjwe varchar(50) NOT NULL,
+  imiti_yahawe varchar(100) NOT NULL,
+  amafaranga_yishyuwe varchar(100) DEFAULT NULL,
+  igihe_izongera_kuvurizwa varchar(100) NOT NULL,
+  itungo_ryarwaye_id uuid NOT null,
+  constraint amatungo_yavujwe_pk primary key(id),
+  constraint itungo_ryarwaye_fk foreign key(itungo_ryarwaye_id) references public.itungo_ryarwaye(id)
+);
+
+_______________________________________________________________________________________________________________
+--==13.itungo_ryimye==-
+CREATE TABLE itungo_ryimye (
+  id uuid NOT NULL,
+  itariki_ryimiye varchar(50) NOT NULL,
+  inshuro_igezeho_ryima varchar(30) NOT NULL,
+  itariki_rizabyarira varchar(30) NOT NULL,
+  itungo_id uuid NOT null,
+  constraint itungo_ryimye_pk primary KEY(id),
+  constraint itungo_fk foreign key(itungo_id) references public.itungo(id)
+);
+
+______________________________________________________________________________________________________________________
+
+--==14.admin==--
+
+CREATE TABLE public.admin (
+  user_account_id uuid  NOT NULL,
+  city varchar(255) DEFAULT NULL,
+  country varchar(255) DEFAULT NULL,
+  employment_type varchar(255) DEFAULT NULL,
+  first_name varchar(255) DEFAULT NULL,
+  last_name varchar(255) DEFAULT NULL,
+  profile_photo varchar(255) DEFAULT NULL,
+  resume varchar(255) DEFAULT NULL,
+  state varchar(255) DEFAULT NULL,
+  work_authorization varchar(255) DEFAULT NULL,
+  PRIMARY KEY (user_account_id),
+  CONSTRAINT user_account_fk FOREIGN KEY (user_account_id) REFERENCES sec_user (user_id)
+);
+
+_____________________________________________________________________________________________________________________
+--==15. Regular User
+CREATE TABLE public.regular_user (
+  user_account_id uuid  NOT NULL,
+  city varchar(255) DEFAULT NULL,
+  country varchar(255) DEFAULT NULL,
+  employment_type varchar(255) DEFAULT NULL,
+  first_name varchar(255) DEFAULT NULL,
+  last_name varchar(255) DEFAULT NULL,
+  profile_photo varchar(255) DEFAULT NULL,
+  resume varchar(255) DEFAULT NULL,
+  state varchar(255) DEFAULT NULL,
+  work_authorization varchar(255) DEFAULT NULL,
+  PRIMARY KEY (user_account_id),
+  CONSTRAINT user_account_fk FOREIGN KEY (user_account_id) REFERENCES sec_user (user_id)
+);
+
+
+
+
+
+
+
+
+
+
+
